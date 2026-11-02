@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI-Empfehlung Wil · PICTS</title>
+<style>
+:root{
+  --ink:#1a1a1a; --muted:#5f5f5a; --line:#e2e0d8; --line2:#cfcdc3; --bg:#f4f3ee; --card:#fff;
+  --sus:#2f8f5b; --lp:#2f6cae; --komp:#c2772e; --bedarf:#9a3b3b; --park:#8a4b8f;
+  --sus-bg:#eef7f1; --lp-bg:#eaf1f9; --komp-bg:#fbf1e4; --bedarf-bg:#f8ebeb; --park-bg:#f4ecf5;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;}
+button{font-family:inherit;cursor:pointer;}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20;flex-wrap:wrap;}
+.brand strong{font-size:18px;display:block;}
+.brand .sub{font-size:12.5px;color:var(--muted);}
+.tabs{display:flex;gap:6px;}
+.tab{border:1px solid var(--line2);background:#f6f5f1;border-radius:999px;padding:7px 16px;font-size:14px;color:var(--muted);}
+.tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.cyclebar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.cyclebar .lbl{font-size:13px;color:var(--muted);font-weight:600;}
+.cyclepick{display:flex;gap:6px;flex-wrap:wrap;}
+.cyclepick button{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:7px 14px;font-size:14px;}
+.cyclepick button.sel{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.status{margin-left:auto;font-size:12.5px;color:var(--muted);}
+
+main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
+
+/* Board (Erfassen) */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.board.extra{grid-template-columns:repeat(2,1fr);margin-top:14px;}
+.fieldcard{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:12px;padding:16px 16px 14px;cursor:pointer;transition:box-shadow .12s;}
+.fieldcard:hover{box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.fieldcard h3{margin:0 0 4px;font-size:16px;color:var(--c);}
+.fieldcard .lf{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px;min-height:32px;}
+.fieldcard .count{font-size:12.5px;color:var(--muted);}
+.fieldcard .count b{color:var(--ink);}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:6px;}
+
+/* Zoom (detail) */
+.detail{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:14px;padding:0;overflow:hidden;}
+.detailhead{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--c-bg);}
+.detailhead h2{margin:0;font-size:20px;color:var(--c);flex:1;}
+.detailhead .lf{font-size:13px;color:var(--muted);font-style:italic;}
+.back{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:8px 14px;font-size:14px;}
+.qblock{padding:16px 20px;border-top:1px solid var(--line);}
+.qblock .qtyp{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c);}
+.qblock .qtext{font-size:17px;font-weight:600;margin:3px 0 10px;}
+.entries{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.entry{background:var(--c-bg);border-radius:9px;padding:9px 12px;font-size:14.5px;display:flex;gap:10px;align-items:flex-start;}
+.entry .txt{flex:1;}
+.entry .ind{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;}
+.entry .src{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;}
+.src.geerntet{background:#e7e6e0;color:#555;}
+.src.ergaenzt{background:#d8eef4;color:#1d6d85;}
+.entry .del{border:none;background:none;color:#b24;font-size:16px;line-height:1;padding:0 2px;cursor:pointer;opacity:.5;}
+.entry .del:hover{opacity:1;}
+
+.addform{display:flex;flex-direction:column;gap:8px;background:#faf9f6;border:1px dashed var(--line2);border-radius:10px;padding:12px;}
+.addform textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;font:inherit;font-size:15px;resize:vertical;min-height:44px;}
+.addform .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.srctoggle{display:flex;gap:4px;}
+.srctoggle button{border:1px solid var(--line2);background:#fff;border-radius:7px;padding:6px 11px;font-size:13px;color:var(--muted);}
+.srctoggle button.on{background:var(--c);color:#fff;border-color:var(--c);}
+.addbtn{margin-left:auto;background:var(--c);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:14px;font-weight:600;}
+.hint{font-size:12px;color:var(--muted);}
+
+/* Fazit */
+.fazitpick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.fazitpick button{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:9px 16px;font-size:14px;color:var(--c);border-bottom:3px solid var(--c);}
+.fazitpick button.sel{background:var(--c);color:#fff;}
+.fazitrow{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.fazitrow .rtyp{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c);background:var(--c-bg);padding:8px 16px;}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);}
+.col{background:#fff;padding:10px 12px;min-height:40px;}
+.col h5{margin:0 0 6px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.col .ce{font-size:13.5px;margin-bottom:5px;padding-bottom:5px;border-bottom:1px dotted var(--line);}
+.col .ce:last-child{border-bottom:none;}
+.col .ce .ci{display:block;font-size:12px;color:var(--muted);}
+.konklusio{padding:12px 16px;background:#f3f8f4;border-top:1px solid var(--line);}
+.konklusio label{font-size:12px;font-weight:700;color:#2a7347;text-transform:uppercase;letter-spacing:.05em;}
+.konklusio .exist{font-size:14.5px;margin:6px 0;padding:7px 10px;background:#e3f2e7;border-radius:8px;display:flex;gap:8px;align-items:flex-start;}
+.konklusio textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14.5px;margin-top:6px;min-height:40px;}
+.konklusio .krow{display:flex;gap:8px;margin-top:6px;align-items:center;}
+.konklusio .ksave{background:#2a7347;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13.5px;font-weight:600;}
+.pool{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:12px;padding:14px 18px;}
+.pool h3{margin:0 0 8px;color:var(--c);font-size:16px;}
+.pool .pe{font-size:14px;padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;}
+.pool .pe:last-child{border:none;}
+.pool .pz{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:all .2s;pointer-events:none;z-index:50;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.loading{text-align:center;color:var(--muted);padding:40px;}
+
+@media(max-width:800px){
+  .board,.board.extra,.cols{grid-template-columns:1fr;}
+  .detailhead{flex-wrap:wrap;}
+}
+
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <strong>KI-Empfehlung Stadt Wil</strong>
+      <span class="sub">PICTS-Treffen · gemeinsamer Nenner pro Zyklus</span>
+    </div>
+    <nav class="tabs">
+      <button id="tab-erfassen" class="tab active" onclick="setMode('erfassen')">Erfassen</button>
+      <button id="tab-fazit" class="tab" onclick="setMode('fazit')">Fazit</button>
+    </nav>
+  </header>
+
+  <div id="bar-erfassen" class="cyclebar">
+    <span class="lbl">Zyklus:</span>
+    <div class="cyclepick" id="cyclepick"></div>
+    <span class="status" id="status"></span>
+  </div>
+
+  <main id="app"></main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+/* KI-Empfehlung Wil — Front-End
+   Konfiguration (Fragen-Wortlaut) steht ganz oben und ist frei editierbar. */
+
+const CYCLES = ["Zyklus 1", "Zyklus 2", "Zyklus 3"];
+
+const FIELDS = {
+  "SuS": {
+    title: "KI-Einsatz von Schülerinnen und Schülern",
+    color: "sus",
+    leitfrage: "Wann, wie, unter welchen Bedingungen? In welche Arbeitsphasen im Lernprozess?",
+    indikator: true,
+    fragen: [
+      { typ: "Fundament", text: "Was soll ein Kind am Ende dieses Zyklus bewusst ohne KI können?" },
+      { typ: "Erlaubnis", text: "Wofür dürfen SuS KI ausdrücklich nutzen? Woran erkennt man die Grenze?" },
+      { typ: "Grenze", text: "Wovor warnen wir – und was gilt bei Missbrauch/Täuschung?" }
+    ]
+  },
+  "LP": {
+    title: "KI-Einsatz von Lehrpersonen",
+    color: "lp",
+    leitfrage: "Wann, wie, unter welchen Bedingungen? Konkrete Beispiele. (Indikator optional)",
+    indikator: false,
+    fragen: [
+      { typ: "Entlastung", text: "Wo nimmt KI uns Arbeit ab, ohne dass die Qualität leidet?" },
+      { typ: "Vorbild", text: "Was von unserem KI-Einsatz machen wir den SuS sichtbar?" },
+      { typ: "Voraussetzung", text: "Was müssen wir selbst können, bevor wir es von den SuS verlangen?" }
+    ]
+  },
+  "Kompetenzen": {
+    title: "Welche Kompetenzen aufbauen (genKI)?",
+    color: "komp",
+    leitfrage: "Welche Kompetenzen wollen wir bei SuS (und LuL) aufbauen? (Indikator zentral)",
+    indikator: true,
+    fragen: [
+      { typ: "Kern", text: "Die eine Kompetenz, die jedes Kind dieses Zyklus mitnimmt?" },
+      { typ: "Operationalisierung", text: "Woran erkennen wir, dass ein Kind KI nutzt statt genutzt zu werden?" },
+      { typ: "Selbstbezug", text: "Was davon gilt genauso für uns LuL?" }
+    ]
+  }
+};
+
+const EXTRA = {
+  "Bedarf SL": { title: "Bedarf an die Schulführung", color: "bedarf",
+    leitfrage: "Was brauchen wir von der SL, damit Feld 1–3 umsetzbar ist? (Zugang, Tool, WB-Zeit, Datenschutz, Eltern)" },
+  "Parkplatz": { title: "Parkplatz", color: "park",
+    leitfrage: "Offene Fragen und Anliegen zum Thema KI." }
+};
+
+let MODE = "erfassen";
+let CYCLE = CYCLES[0];
+let OPEN_FIELD = null;      // Erfassen: welches Feld gezoomt
+let FAZIT_FIELD = "SuS";    // Fazit: welches Feld
+let DATA = [];              // alle Einträge
+
+const $ = (s) => document.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = (s) => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function loadData() {
+  try {
+    const r = await fetch("/api/data?op=results");
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Fehler");
+    DATA = j.records || [];
+  } catch (e) {
+    toast("Laden fehlgeschlagen: " + e.message);
+    DATA = [];
+  }
+}
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function setMode(m) {
+  MODE = m; OPEN_FIELD = null;
+  $("#tab-erfassen").classList.toggle("active", m === "erfassen");
+  $("#tab-fazit").classList.toggle("active", m === "fazit");
+  $("#bar-erfassen").style.display = m === "erfassen" ? "flex" : "none";
+  render();
+}
+
+function setCycle(c) { CYCLE = c; OPEN_FIELD = null; render(); }
+
+function renderCyclebar() {
+  const p = $("#cyclepick"); p.innerHTML = "";
+  CYCLES.forEach(c => {
+    const b = el("button", c === CYCLE ? "sel" : "", c);
+    b.onclick = () => setCycle(c);
+    p.appendChild(b);
+  });
+  const n = DATA.filter(d => d.Zyklus === CYCLE && d.Ebene !== "gemeinsam").length;
+  $("#status").textContent = n + " Einträge in " + CYCLE;
+}
+
+function entriesFor(feld, fragetyp, zyklus) {
+  return DATA.filter(d => d.Feld === feld && d.Ebene !== "gemeinsam"
+    && (fragetyp == null || d.Fragetyp === fragetyp)
+    && (zyklus == null || d.Zyklus === zyklus));
+}
+
+/* ---------- ERFASSEN ---------- */
+function renderErfassen() {
+  const app = $("#app"); app.innerHTML = "";
+  if (OPEN_FIELD) { renderDetail(app, OPEN_FIELD); return; }
+
+  const board = el("div", "board");
+  Object.keys(FIELDS).forEach(key => {
+    const f = FIELDS[key];
+    const card = el("div", "fieldcard");
+    card.style.setProperty("--c", `var(--${f.color})`);
+    const cnt = entriesFor(key, null, CYCLE).length;
+    card.innerHTML = `<h3>${esc(f.title)}</h3><div class="lf">${esc(f.leitfrage)}</div>
+      <div class="count"><span class="dot"></span><b>${cnt}</b> Einträge in ${CYCLE}</div>`;
+    card.onclick = () => { OPEN_FIELD = key; render(); };
+    board.appendChild(card);
+  });
+  app.appendChild(board);
+
+  const extra = el("div", "board extra");
+  Object.keys(EXTRA).forEach(key => {
+    const f = EXTRA[key];
+    const card = el("div", "fieldcard");
+    card.style.setProperty("--c", `var(--${f.color})`);
+    const cnt = entriesFor(key, null, CYCLE).length;
+    card.innerHTML = `<h3>${esc(f.title)}</h3><div class="lf">${esc(f.leitfrage)}</div>
+      <div class="count"><span class="dot"></span><b>${cnt}</b> Einträge in ${CYCLE}</div>`;
+    card.onclick = () => { OPEN_FIELD = key; render(); };
+    extra.appendChild(card);
+  });
+  app.appendChild(extra);
+}
+
+function renderDetail(app, key) {
+  const isExtra = !!EXTRA[key];
+  const f = isExtra ? EXTRA[key] : FIELDS[key];
+  const wrap = el("div", "detail");
+  wrap.style.setProperty("--c", `var(--${f.color})`);
+  wrap.style.setProperty("--c-bg", `var(--${f.color}-bg)`);
+
+  const head = el("div", "detailhead");
+  head.innerHTML = `<h2>${esc(f.title)}</h2><span class="lf">${esc(f.leitfrage)}</span>`;
+  const back = el("button", "back", "← Übersicht");
+  back.onclick = () => { OPEN_FIELD = null; render(); };
+  head.appendChild(back);
+  wrap.appendChild(head);
+
+  const fragen = isExtra
+    ? [{ typ: "—", text: f.leitfrage }]
+    : f.fragen.concat([{ typ: "Weiterer Punkt", text: "Was noch? (passt in keine der Fragen oben)" }]);
+
+  const showInd = isExtra ? false : f.indikator;
+  fragen.forEach(q => wrap.appendChild(qBlock(key, f, q, showInd)));
+  app.appendChild(wrap);
+}
+
+function qBlock(key, f, q, showInd) {
+  const block = el("div", "qblock");
+  if (!(q.typ === "—")) block.appendChild(el("div", "qtyp", esc(q.typ)));
+  block.appendChild(el("div", "qtext", esc(q.text)));
+
+  const list = el("div", "entries");
+  const items = entriesFor(key, q.typ, CYCLE);
+  items.forEach(it => list.appendChild(entryRow(it)));
+  block.appendChild(list);
+
+  // Add-Formular
+  const form = el("div", "addform");
+  const ta = el("textarea"); ta.placeholder = "Aussage eintippen…";
+  form.appendChild(ta);
+  let indTa = null;
+  if (showInd) {
+    indTa = el("textarea"); indTa.placeholder = "Indikator (optional): woran erkennbar? « … erkennbar daran, dass … »";
+    indTa.style.minHeight = "38px"; indTa.style.fontSize = "14px";
+    form.appendChild(indTa);
+  }
+  const row = el("div", "row");
+  let quelle = "geerntet";
+  const tgl = el("div", "srctoggle");
+  ["geerntet", "ergänzt"].forEach(s => {
+    const b = el("button", s === quelle ? "on" : "", s);
+    b.onclick = () => { quelle = s; [...tgl.children].forEach((c, i) => c.classList.toggle("on", ["geerntet", "ergänzt"][i] === s)); };
+    tgl.appendChild(b);
+  });
+  row.appendChild(el("span", "hint", "Quelle:"));
+  row.appendChild(tgl);
+  const add = el("button", "addbtn", "+ Hinzufügen");
+  add.onclick = async () => {
+    const aussage = ta.value.trim();
+    if (!aussage) { toast("Bitte eine Aussage eintippen."); return; }
+    add.disabled = true;
+    await addEntry({
+      Zyklus: CYCLE, Feld: key, Fragetyp: q.typ, Aussage: aussage,
+      Indikator: indTa ? indTa.value.trim() : "", Quelle: quelle, Ebene: "Rohdaten"
+    });
+    add.disabled = false;
+  };
+  row.appendChild(add);
+  form.appendChild(row);
+  block.appendChild(form);
+  return block;
+}
+
+function entryRow(it) {
+  const e = el("div", "entry");
+  const srcCls = it.Quelle === "ergänzt" ? "ergaenzt" : "geerntet";
+  e.innerHTML = `<span class="txt">${esc(it.Aussage)}${it.Indikator ? `<span class="ind">→ ${esc(it.Indikator)}</span>` : ""}</span>
+    <span class="src ${srcCls}">${esc(it.Quelle || "")}</span>`;
+  const del = el("button", "del", "×");
+  del.title = "Löschen";
+  del.onclick = async (ev) => { ev.stopPropagation(); if (confirm("Diesen Eintrag löschen?")) await delEntry(it.id); };
+  e.appendChild(del);
+  return e;
+}
+
+/* ---------- FAZIT ---------- */
+function renderFazit() {
+  const app = $("#app"); app.innerHTML = "";
+  const pick = el("div", "fazitpick");
+  Object.keys(FIELDS).concat(Object.keys(EXTRA)).forEach(key => {
+    const f = FIELDS[key] || EXTRA[key];
+    const b = el("button", key === FAZIT_FIELD ? "sel" : "", esc(key));
+    b.style.setProperty("--c", `var(--${f.color})`);
+    b.style.setProperty("--c-bg", `var(--${f.color}-bg)`);
+    b.onclick = () => { FAZIT_FIELD = key; render(); };
+    pick.appendChild(b);
+  });
+  app.appendChild(pick);
+
+  if (EXTRA[FAZIT_FIELD]) { renderPool(app, FAZIT_FIELD); return; }
+
+  const f = FIELDS[FAZIT_FIELD];
+  const fragen = f.fragen.concat([{ typ: "Weiterer Punkt", text: "" }]);
+  fragen.forEach(q => {
+    const row = el("div", "fazitrow");
+    row.style.setProperty("--c", `var(--${f.color})`);
+    row.style.setProperty("--c-bg", `var(--${f.color}-bg)`);
+    row.appendChild(el("div", "rtyp", esc(q.typ)));
+    const cols = el("div", "cols");
+    CYCLES.forEach(cy => {
+      const c = el("div", "col");
+      c.appendChild(el("h5", null, esc(cy)));
+      const items = entriesFor(FAZIT_FIELD, q.typ, cy);
+      if (!items.length) c.appendChild(el("div", "ci", "<span style='color:#bbb'>—</span>"));
+      items.forEach(it => {
+        const ce = el("div", "ce");
+        ce.innerHTML = esc(it.Aussage) + (it.Indikator ? `<span class="ci">→ ${esc(it.Indikator)}</span>` : "");
+        c.appendChild(ce);
+      });
+      cols.appendChild(c);
+    });
+    row.appendChild(cols);
+    row.appendChild(konklusioBox(FAZIT_FIELD, q.typ, f.indikator));
+    app.appendChild(row);
+  });
+}
+
+function konklusioBox(feld, fragetyp, showInd) {
+  const box = el("div", "konklusio");
+  box.appendChild(el("label", null, "Konklusio (gemeinsam) — " + esc(fragetyp)));
+  const existing = DATA.filter(d => d.Feld === feld && d.Fragetyp === fragetyp && d.Ebene === "gemeinsam");
+  existing.forEach(ex => {
+    const e = el("div", "exist");
+    e.innerHTML = `<span style="flex:1">${esc(ex.Aussage)}${ex.Indikator ? `<span class="ci">→ ${esc(ex.Indikator)}</span>` : ""}</span>`;
+    const del = el("button", "del", "×");
+    del.onclick = async () => { if (confirm("Konklusio löschen?")) await delEntry(ex.id); };
+    e.appendChild(del);
+    box.appendChild(e);
+  });
+  const ta = el("textarea"); ta.placeholder = "Gemeinsamen Satz frisch formulieren…";
+  box.appendChild(ta);
+  const krow = el("div", "krow");
+  let indTa = null;
+  if (showInd) {
+    indTa = el("input"); indTa.placeholder = "Indikator (optional)";
+    indTa.style.cssText = "flex:1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;";
+    krow.appendChild(indTa);
+  }
+  const save = el("button", "ksave", "Als gemeinsam speichern");
+  save.onclick = async () => {
+    const aussage = ta.value.trim();
+    if (!aussage) { toast("Bitte einen Satz formulieren."); return; }
+    save.disabled = true;
+    await addEntry({ Zyklus: "Alle (gemeinsam)", Feld: feld, Fragetyp: fragetyp, Aussage: aussage,
+      Indikator: indTa ? indTa.value.trim() : "", Quelle: "", Ebene: "gemeinsam" });
+    save.disabled = false;
+  };
+  krow.appendChild(save);
+  box.appendChild(krow);
+  return box;
+}
+
+function renderPool(app, key) {
+  const f = EXTRA[key];
+  const pool = el("div", "pool");
+  pool.style.setProperty("--c", `var(--${f.color})`);
+  pool.appendChild(el("h3", null, esc(f.title) + " — alle Zyklen"));
+  const items = DATA.filter(d => d.Feld === key);
+  if (!items.length) pool.appendChild(el("div", "hint", "Noch keine Einträge."));
+  items.forEach(it => {
+    const pe = el("div", "pe");
+    pe.innerHTML = `<span style="flex:1">${esc(it.Aussage)}</span><span class="pz">${esc(it.Zyklus || "")}</span>`;
+    const del = el("button", "del", "×");
+    del.style.cssText = "border:none;background:none;color:#b24;cursor:pointer;";
+    del.onclick = async () => { if (confirm("Löschen?")) await delEntry(it.id); };
+    pe.appendChild(del);
+    pool.appendChild(pe);
+  });
+  app.appendChild(pool);
+}
+
+/* ---------- API ---------- */
+async function addEntry(fields) {
+  try {
+    const r = await fetch("/api/data?op=submit", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(mapOut(fields)) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Fehler");
+    await loadData(); render(); toast("Gespeichert.");
+  } catch (e) { toast("Speichern fehlgeschlagen: " + e.message); }
+}
+async function delEntry(id) {
+  try {
+    const r = await fetch("/api/data?op=delete", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Fehler");
+    await loadData(); render(); toast("Gelöscht.");
+  } catch (e) { toast("Löschen fehlgeschlagen: " + e.message); }
+}
+function mapOut(f) {
+  return { zyklus: f.Zyklus, feld: f.Feld, fragetyp: f.Fragetyp, aussage: f.Aussage,
+    indikator: f.Indikator, quelle: f.Quelle, ebene: f.Ebene };
+}
+
+function render() {
+  renderCyclebar();
+  if (MODE === "erfassen") renderErfassen(); else renderFazit();
+}
+
+(async function init() {
+  $("#app").innerHTML = '<div class="loading">Lädt…</div>';
+  await loadData();
+  render();
+})();
+
+</script>
+</body>
+</html>
