@@ -94,6 +94,26 @@ main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
 .pool .pe:last-child{border:none;}
 .pool .pz{font-size:11px;color:var(--muted);white-space:nowrap;}
 
+/* Konsens-Übersicht (Fazit) */
+.konspanel{background:var(--card);border:1px solid var(--line2);border-left:4px solid #2a7347;border-radius:12px;padding:14px 18px;margin-bottom:18px;}
+.konshead{display:flex;align-items:baseline;gap:10px;}
+.konshead strong{font-size:15px;}
+.konscount{font-size:12px;color:var(--muted);}
+.konssub{font-size:12.5px;color:var(--muted);margin:3px 0 10px;}
+.konsrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);}
+.konsrow:first-of-type{border-top:none;}
+.konstag{flex:0 0 auto;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:999px;white-space:nowrap;align-self:center;}
+.konstag.gem{background:#e3f2e7;color:#2a7347;}
+.konstag.spez{background:#eef0f9;color:#3a4a9a;}
+.konstext{flex:1;font-size:14.5px;}
+.konsrow .del{border:none;background:none;color:#b24;font-size:18px;line-height:1;cursor:pointer;opacity:.6;padding:0 4px;align-self:center;}
+.konsrow .del:hover{opacity:1;}
+
+/* Ebene-Wahl in Konklusio-Box */
+.levelpick{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.levelpick button{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--muted);}
+.levelpick button.sel{background:#2a7347;color:#fff;border-color:#2a7347;}
+
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:all .2s;pointer-events:none;z-index:50;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .loading{text-align:center;color:var(--muted);padding:40px;}
@@ -402,6 +422,8 @@ function renderFazit() {
   });
   app.appendChild(pick);
 
+  renderKonsensUebersicht(app);
+
   if (EXTRA[FAZIT_FIELD]) { renderPool(app, FAZIT_FIELD); return; }
 
   const f = FIELDS[FAZIT_FIELD];
@@ -430,20 +452,64 @@ function renderFazit() {
   });
 }
 
+function renderKonsensUebersicht(app) {
+  const kons = DATA.filter(d => d.Ebene === "gemeinsam" || d.Ebene === "zyklusspezifisch");
+  const box = el("div", "konspanel");
+  const head = el("div", "konshead");
+  head.appendChild(el("strong", null, "Aktueller Konsens"));
+  head.appendChild(el("span", "konscount", kons.length + (kons.length === 1 ? " Satz" : " Sätze")));
+  box.appendChild(head);
+  box.appendChild(el("div", "konssub", "Alle gespeicherten Konsens-Sätze. Hier löschbar, um sie nach der Vernehmlassung zu überarbeiten."));
+  if (!kons.length) {
+    box.appendChild(el("div", "konssub", "<span style='color:#bbb'>Noch keine Konsens-Sätze gespeichert.</span>"));
+  } else {
+    const order = Object.keys(FIELDS).concat(Object.keys(EXTRA));
+    kons.sort((a, b) => (order.indexOf(a.Feld) - order.indexOf(b.Feld)) || String(a.Fragetyp).localeCompare(String(b.Fragetyp)));
+    kons.forEach(it => {
+      const row = el("div", "konsrow");
+      const isGem = it.Ebene === "gemeinsam";
+      const tagText = esc(it.Feld) + " · " + esc(it.Fragetyp || "") + " · " + (isGem ? "gemeinsam" : esc(it.Zyklus || "zyklusspezifisch"));
+      row.appendChild(el("span", "konstag " + (isGem ? "gem" : "spez"), tagText));
+      row.appendChild(el("span", "konstext", esc(it.Aussage) + (it.Indikator ? `<span class="ci">→ ${esc(it.Indikator)}</span>` : "")));
+      const del = el("button", "del", "×");
+      del.title = "Konsens-Satz löschen";
+      del.onclick = async () => { if (confirm("Diesen Konsens-Satz löschen? Bereits abgegebene Rückmeldungen dazu bleiben in der Vernehmlassung erhalten.")) await delEntry(it.id); };
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+  }
+  app.appendChild(box);
+}
+
 function konklusioBox(feld, fragetyp, showInd) {
   const box = el("div", "konklusio");
-  box.appendChild(el("label", null, "Konklusio (gemeinsam) — " + esc(fragetyp)));
-  const existing = DATA.filter(d => d.Feld === feld && d.Fragetyp === fragetyp && d.Ebene === "gemeinsam");
+  box.appendChild(el("label", null, "Konklusio — " + esc(fragetyp)));
+  const existing = DATA.filter(d => d.Feld === feld && d.Fragetyp === fragetyp && (d.Ebene === "gemeinsam" || d.Ebene === "zyklusspezifisch"));
   existing.forEach(ex => {
+    const isGem = ex.Ebene === "gemeinsam";
     const e = el("div", "exist");
-    e.innerHTML = `<span style="flex:1">${esc(ex.Aussage)}${ex.Indikator ? `<span class="ci">→ ${esc(ex.Indikator)}</span>` : ""}</span>`;
+    const lvl = isGem ? "gemeinsam" : esc(ex.Zyklus || "zyklusspezifisch");
+    e.innerHTML = `<span style="flex:1"><span class="konstag ${isGem ? "gem" : "spez"}" style="margin-right:7px">${lvl}</span>${esc(ex.Aussage)}${ex.Indikator ? `<span class="ci">→ ${esc(ex.Indikator)}</span>` : ""}</span>`;
     const del = el("button", "del", "×");
     del.onclick = async () => { if (confirm("Konklusio löschen?")) await delEntry(ex.id); };
     e.appendChild(del);
     box.appendChild(e);
   });
-  const ta = el("textarea"); ta.placeholder = "Gemeinsamen Satz frisch formulieren…";
+  const ta = el("textarea"); ta.placeholder = "Konsens-Satz frisch formulieren…";
   box.appendChild(ta);
+
+  // Ebene wählen: gemeinsam (alle Zyklen) oder nur ein Zyklus
+  let level = "gemeinsam";
+  const lp = el("div", "levelpick");
+  const opts = [{ v: "gemeinsam", t: "gemeinsam (alle Zyklen)" }].concat(CYCLES.map(c => ({ v: c, t: "nur " + c })));
+  const updateSaveLabel = () => { save.textContent = level === "gemeinsam" ? "Als gemeinsam speichern" : "Für " + level + " speichern"; };
+  opts.forEach(o => {
+    const b = el("button", o.v === level ? "sel" : "", esc(o.t));
+    b.onclick = () => { level = o.v; lp.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); updateSaveLabel(); };
+    lp.appendChild(b);
+  });
+  box.appendChild(lp);
+
   const krow = el("div", "krow");
   let indTa = null;
   if (showInd) {
@@ -456,10 +522,12 @@ function konklusioBox(feld, fragetyp, showInd) {
     const aussage = ta.value.trim();
     if (!aussage) { toast("Bitte einen Satz formulieren."); return; }
     save.disabled = true;
-    await addEntry({ Zyklus: "Alle (gemeinsam)", Feld: feld, Fragetyp: fragetyp, Aussage: aussage,
-      Indikator: indTa ? indTa.value.trim() : "", Quelle: "", Ebene: "gemeinsam" });
+    const isGem = level === "gemeinsam";
+    await addEntry({ Zyklus: isGem ? "Alle (gemeinsam)" : level, Feld: feld, Fragetyp: fragetyp, Aussage: aussage,
+      Indikator: indTa ? indTa.value.trim() : "", Quelle: "", Ebene: isGem ? "gemeinsam" : "zyklusspezifisch" });
     save.disabled = false;
   };
+  updateSaveLabel();
   krow.appendChild(save);
   box.appendChild(krow);
   return box;
