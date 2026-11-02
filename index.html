@@ -103,6 +103,30 @@ main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
   .detailhead{flex-wrap:wrap;}
 }
 
+.vpick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center;}
+.vpick .vlbl{font-size:13px;color:var(--muted);font-weight:600;margin-right:4px;}
+.vpick button{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:6px 12px;font-size:13.5px;}
+.vpick button.sel{background:var(--ink);color:#fff;border-color:var(--ink);}
+.vhint{font-size:13px;color:var(--muted);margin:4px 0 14px;line-height:1.5;}
+.vstmt{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.vstmt .vmeta{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c);}
+.vstmt .vsatz{font-size:15px;font-weight:600;margin:3px 0 4px;}
+.vstmt .vind{font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+.vrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+.vtoggle{display:flex;gap:4px;}
+.vtoggle button{border:1px solid var(--line2);background:#fff;border-radius:7px;padding:6px 12px;font-size:13px;color:var(--muted);}
+.vtoggle button.ja.on{background:#2a7347;color:#fff;border-color:#2a7347;}
+.vtoggle button.nein.on{background:#a3302f;color:#fff;border-color:#a3302f;}
+.vdone{font-size:12px;color:#2a7347;font-weight:600;}
+.vstmt textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;margin-top:8px;min-height:36px;resize:vertical;}
+.vsave{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:13px;font-weight:600;margin-left:auto;}
+.vsection{margin:20px 0 8px;font-size:16px;font-weight:600;}
+.bedarf{background:var(--bedarf-bg);border:1px solid var(--bedarf);border-radius:10px;padding:12px 14px;}
+.bedarf .be{font-size:14px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06);display:flex;gap:8px;align-items:flex-start;}
+.bedarf .be:last-of-type{border:none;}
+.bedarf textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;margin-top:8px;min-height:38px;resize:vertical;}
+.bedarf .badd{background:var(--bedarf);color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:13px;font-weight:600;margin-top:8px;}
+
 </style>
 </head>
 <body>
@@ -114,6 +138,7 @@ main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
     <nav class="tabs">
       <button id="tab-erfassen" class="tab active" onclick="setMode('erfassen')">Erfassen</button>
       <button id="tab-fazit" class="tab" onclick="setMode('fazit')">Fazit</button>
+      <button id="tab-vern" class="tab" onclick="setMode('vernehmlassung')">Vernehmlassung</button>
     </nav>
   </header>
 
@@ -176,11 +201,29 @@ const EXTRA = {
     leitfrage: "Offene Fragen und Anliegen zum Thema KI." }
 };
 
+const HOUSES = [
+  { name: "OS LiHo", cycles: ["Zyklus 3"] },
+  { name: "OS Sonnenhof", cycles: ["Zyklus 3"] },
+  { name: "OS Bronschhofen", cycles: ["Zyklus 3"] },
+  { name: "PS Tonhalle", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS Kirchplatz", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS Matt", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS Bronschhofen", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS Rossrüti", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS LiHo", cycles: ["Zyklus 1", "Zyklus 2"] },
+  { name: "PS Allee", cycles: ["Zyklus 1", "Zyklus 2"] }
+];
+
 let MODE = "erfassen";
 let CYCLE = CYCLES[0];
 let OPEN_FIELD = null;      // Erfassen: welches Feld gezoomt
 let FAZIT_FIELD = "SuS";    // Fazit: welches Feld
-let DATA = [];              // alle Einträge
+let DATA = [];              // alle Einträge (Tabelle Einträge)
+let VHOUSE = null, VCYCLE = null;   // Vernehmlassung: Schulhaus + Zyklus
+let FEEDBACK = [], FEEDBACK_LOADED = false;
+
+function captureFocus() { const a = document.activeElement; if (a && a.dataset && a.dataset.key) return { key: a.dataset.key, val: a.value, s: a.selectionStart, e: a.selectionEnd }; return null; }
+function restoreFocus(f) { if (!f) return; const n = document.querySelector('[data-key="' + (window.CSS && CSS.escape ? CSS.escape(f.key) : f.key) + '"]'); if (n) { n.value = f.val; n.focus(); try { n.setSelectionRange(f.s, f.e); } catch (_) {} } }
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
@@ -207,6 +250,7 @@ function setMode(m) {
   MODE = m; OPEN_FIELD = null;
   $("#tab-erfassen").classList.toggle("active", m === "erfassen");
   $("#tab-fazit").classList.toggle("active", m === "fazit");
+  $("#tab-vern").classList.toggle("active", m === "vernehmlassung");
   $("#bar-erfassen").style.display = m === "erfassen" ? "flex" : "none";
   render();
 }
@@ -464,9 +508,119 @@ function mapOut(f) {
     indikator: f.Indikator, quelle: f.Quelle, ebene: f.Ebene };
 }
 
+/* ---------- VERNEHMLASSUNG ---------- */
+async function loadFeedback() {
+  try {
+    const r = await fetch("/api/data?op=feedback-results");
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Fehler");
+    FEEDBACK = j.records || [];
+  } catch (e) { toast("Rückmeldungen laden fehlgeschlagen: " + e.message); FEEDBACK = []; }
+  FEEDBACK_LOADED = true; render();
+}
+function consensusFor(cycle) {
+  const gem = DATA.filter(d => d.Ebene === "gemeinsam");
+  const spez = DATA.filter(d => d.Ebene === "zyklusspezifisch" && d.Zyklus === cycle);
+  const order = Object.keys(FIELDS).concat(Object.keys(EXTRA));
+  return gem.concat(spez).sort((a, b) => order.indexOf(a.Feld) - order.indexOf(b.Feld));
+}
+function renderVernehmlassung() {
+  const app = $("#app"); app.innerHTML = "";
+  const hp = el("div", "vpick"); hp.appendChild(el("span", "vlbl", "Schulhaus:"));
+  HOUSES.forEach(h => {
+    const b = el("button", h.name === VHOUSE ? "sel" : "", esc(h.name));
+    b.onclick = () => { VHOUSE = h.name; VCYCLE = h.cycles.length === 1 ? h.cycles[0] : null; render(); };
+    hp.appendChild(b);
+  });
+  app.appendChild(hp);
+  if (!VHOUSE) { app.appendChild(el("div", "vhint", "Wähle dein Schulhaus, dann den Zyklus.")); return; }
+  const house = HOUSES.find(h => h.name === VHOUSE);
+  const cp = el("div", "vpick"); cp.appendChild(el("span", "vlbl", "Zyklus:"));
+  house.cycles.forEach(cy => {
+    const b = el("button", cy === VCYCLE ? "sel" : "", esc(cy));
+    b.onclick = () => { VCYCLE = cy; render(); };
+    cp.appendChild(b);
+  });
+  app.appendChild(cp);
+  if (!VCYCLE) { app.appendChild(el("div", "vhint", "Wähle den Zyklus.")); return; }
+  if (!FEEDBACK_LOADED) { loadFeedback(); app.appendChild(el("div", "loading", "Lädt…")); return; }
+
+  app.appendChild(el("div", "vhint", "Geht die Empfehlung Satz für Satz durch. Pro Satz: einverstanden oder nicht – und bei Bedarf ein Alternativvorschlag. Eure Antworten ändern den Konsens nicht; sie werden separat gesammelt."));
+
+  const stmts = consensusFor(VCYCLE);
+  if (!stmts.length) app.appendChild(el("div", "vhint", "Die Konsens-Sätze erscheinen hier, sobald sie am Treffen erfasst und als «gemeinsam» gespeichert sind. Den Team-Bedarf unten könnt ihr schon jetzt festhalten."));
+  stmts.forEach(st => {
+    const f = FIELDS[st.Feld] || EXTRA[st.Feld] || { color: "lp" };
+    const card = el("div", "vstmt"); card.style.setProperty("--c", `var(--${f.color})`);
+    card.appendChild(el("div", "vmeta", esc(st.Feld) + " · " + esc(st.Fragetyp || "") + (st.Ebene === "zyklusspezifisch" ? " · " + esc(st.Zyklus) : "")));
+    card.appendChild(el("div", "vsatz", esc(st.Aussage)));
+    if (st.Indikator) card.appendChild(el("div", "vind", "→ " + esc(st.Indikator)));
+    const existing = FEEDBACK.find(d => d.Ref === st.id && d.Schulhaus === VHOUSE && d.Zyklus === VCYCLE);
+    let vote = existing ? existing.Zustimmung : null;
+    const row = el("div", "vrow");
+    const tgl = el("div", "vtoggle");
+    const bJa = el("button", "ja" + (vote === "einverstanden" ? " on" : ""), "einverstanden");
+    const bNein = el("button", "nein" + (vote === "nicht einverstanden" ? " on" : ""), "nicht einverstanden");
+    bJa.onclick = () => { vote = "einverstanden"; bJa.classList.add("on"); bNein.classList.remove("on"); };
+    bNein.onclick = () => { vote = "nicht einverstanden"; bNein.classList.add("on"); bJa.classList.remove("on"); };
+    tgl.appendChild(bJa); tgl.appendChild(bNein); row.appendChild(tgl);
+    if (existing) row.appendChild(el("span", "vdone", "✓ gespeichert"));
+    const save = el("button", "vsave", "Speichern");
+    row.appendChild(save);
+    card.appendChild(row);
+    const alt = el("textarea"); alt.placeholder = "Alternativvorschlag (optional)"; alt.dataset.key = "valt:" + st.id;
+    if (existing && existing.Alternativtext) alt.value = existing.Alternativtext;
+    card.appendChild(alt);
+    save.onclick = async () => { if (!vote) { toast("Bitte einverstanden oder nicht wählen."); return; } save.disabled = true; await saveVotum(st, vote, alt.value.trim()); save.disabled = false; };
+    app.appendChild(card);
+  });
+
+  app.appendChild(el("div", "vsection", "Was braucht euer Team zur Umsetzung?"));
+  const bedarf = el("div", "bedarf");
+  bedarf.appendChild(el("div", "vhint", "Weiterbildung, Input, Material, Zeit … – alles, was ihr braucht, um die Empfehlung umzusetzen."));
+  FEEDBACK.filter(d => d.Feld === "Bedarf Team" && d.Schulhaus === VHOUSE && d.Zyklus === VCYCLE).forEach(b => {
+    const be = el("div", "be"); be.innerHTML = `<span style="flex:1">${esc(b.Alternativtext || "")}</span>`;
+    const del = el("button", "del", "×"); del.style.cssText = "border:none;background:none;color:#a33;cursor:pointer;font-size:16px;line-height:1;";
+    del.onclick = async () => { if (confirm("Bedarf löschen?")) await delFeedback(b.id); };
+    be.appendChild(del); bedarf.appendChild(be);
+  });
+  const bta = el("textarea"); bta.placeholder = "Bedarf eintippen…"; bta.dataset.key = "bedarf-new";
+  bedarf.appendChild(bta);
+  const badd = el("button", "badd", "+ Bedarf hinzufügen");
+  badd.onclick = async () => { const t = bta.value.trim(); if (!t) { toast("Bitte einen Bedarf eintippen."); return; } badd.disabled = true; await addBedarf(t); bta.value = ""; badd.disabled = false; };
+  bedarf.appendChild(badd);
+  app.appendChild(bedarf);
+}
+async function saveVotum(st, zustimmung, alternativtext) {
+  try {
+    const r = await fetch("/api/data?op=feedback", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ art: "votum", ref: st.id, feld: st.Feld, fragetyp: st.Fragetyp, satz: st.Aussage, schulhaus: VHOUSE, zyklus: VCYCLE, zustimmung, alternativtext }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || "Fehler");
+    await loadFeedback(); toast("Gespeichert.");
+  } catch (e) { toast("Speichern fehlgeschlagen: " + e.message); }
+}
+async function addBedarf(text) {
+  try {
+    const r = await fetch("/api/data?op=feedback", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ art: "bedarf", schulhaus: VHOUSE, zyklus: VCYCLE, alternativtext: text }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || "Fehler");
+    await loadFeedback(); toast("Bedarf gespeichert.");
+  } catch (e) { toast("Speichern fehlgeschlagen: " + e.message); }
+}
+async function delFeedback(id) {
+  try {
+    const r = await fetch("/api/data?op=feedback-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || "Fehler");
+    await loadFeedback(); toast("Gelöscht.");
+  } catch (e) { toast("Löschen fehlgeschlagen: " + e.message); }
+}
+
 function render() {
-  renderCyclebar();
-  if (MODE === "erfassen") renderErfassen(); else renderFazit();
+  const f = captureFocus();
+  if (MODE === "erfassen") { renderCyclebar(); renderErfassen(); }
+  else if (MODE === "fazit") { renderCyclebar(); renderFazit(); }
+  else { renderVernehmlassung(); }
+  restoreFocus(f);
 }
 
 (async function init() {
