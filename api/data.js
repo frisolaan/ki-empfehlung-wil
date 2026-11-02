@@ -42,13 +42,14 @@ module.exports = async (req, res) => {
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
 
     if (op === "submit") {
-      const { zyklus, feld, fragetyp, aussage, indikator, quelle, ebene } = body || {};
+      const { zyklus, feld, fragetyp, aussage, indikator, quelle, ebene, oecd } = body || {};
       if (!aussage || !feld) return res.status(400).json({ error: "aussage und feld erforderlich" });
       const fields = { Aussage: aussage, Feld: feld, Ebene: ebene || "Rohdaten" };
       if (zyklus) fields.Zyklus = zyklus;
       if (fragetyp) fields.Fragetyp = fragetyp;
       if (indikator) fields.Indikator = indikator;
       if (quelle) fields.Quelle = quelle;
+      if (oecd) fields.OECD = oecd;
       const r = await fetch(url, { method: "POST", headers: HJ, body: JSON.stringify({ fields, typecast: true }) });
       const d = await r.json();
       if (!r.ok) return res.status(r.status).json({ error: (d.error && d.error.message) || "Airtable-Fehler" });

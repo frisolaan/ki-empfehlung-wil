@@ -114,6 +114,30 @@ main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
 .levelpick button{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--muted);}
 .levelpick button.sel{background:#2a7347;color:#fff;border-color:#2a7347;}
 
+/* OECD-Auswahl in Konklusio */
+.oecdpick{margin-top:8px;padding:9px 11px;background:#f3f6fa;border:1px solid #d7e0ec;border-radius:9px;}
+.oecdpicklbl{font-size:12px;font-weight:600;color:#3a4a6a;margin-bottom:5px;}
+.oecdsel{width:100%;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px;background:#fff;}
+.oecdinfo{margin-top:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.oecdwhy{font-size:12.5px;color:var(--muted);font-style:italic;}
+.oecdbadge{display:inline-block;color:#fff;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;letter-spacing:.02em;margin-left:7px;vertical-align:middle;}
+
+/* OECD-Rahmen (Tab) */
+.oecdintro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+.oecdintro h2{margin:0 0 6px;font-size:19px;}
+.oecdlead{font-size:14px;color:#444;line-height:1.5;}
+.oecddom{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:14px 18px;margin-bottom:14px;}
+.oecdhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.oecdde{font-size:16px;font-weight:700;color:var(--c);}
+.oecden{font-size:12.5px;color:var(--muted);}
+.oecdn{margin-left:auto;font-size:11.5px;color:var(--muted);}
+.oecdsum{font-size:13px;color:#555;font-style:italic;margin:4px 0 10px;}
+.oecdk{padding:8px 0;border-top:1px solid var(--line);}
+.oecdk:first-of-type{border-top:none;}
+.oecdkt{font-size:14px;color:var(--ink);}
+.oecdkw{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.oecdfoot{font-size:11.5px;color:var(--muted);line-height:1.5;padding:4px 2px 0;}
+
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:all .2s;pointer-events:none;z-index:50;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .loading{text-align:center;color:var(--muted);padding:40px;}
@@ -159,6 +183,7 @@ main{max-width:1080px;margin:0 auto;padding:18px 20px 80px;}
       <button id="tab-erfassen" class="tab active" onclick="setMode('erfassen')">Erfassen</button>
       <button id="tab-fazit" class="tab" onclick="setMode('fazit')">Fazit</button>
       <button id="tab-vern" class="tab" onclick="setMode('vernehmlassung')">Vernehmlassung</button>
+      <button id="tab-oecd" class="tab" onclick="setMode('oecd')">OECD-Rahmen</button>
     </nav>
   </header>
 
@@ -234,6 +259,55 @@ const HOUSES = [
   { name: "PS Allee", cycles: ["Zyklus 1", "Zyklus 2"] }
 ];
 
+/* OECD / EU «AILit Framework» — Empowering Learners for the Age of AI (OECD, EU-Kommission, Code.org).
+   Speist die PISA-2029-Erhebung MAIL (Media and AI Literacy).
+   Domänennamen & Engage-Kompetenzen: offizielle dt. Fassung (KI-Campus). Create/Manage/Shape:
+   eigene Übersetzung der finalen EN-Fassung (ailiteracyframework.org). Begründungen: didaktische Kurz-Erläuterung. */
+const OECD = {
+  quelle: "AILit Framework (OECD / EU-Kommission / Code.org, 2026) · dt. Fassung KI-Campus",
+  domains: [
+    { key: "Engage", de: "Mit KI bewusst umgehen", en: "Engage with AI", color: "#2f6cae",
+      summary: "KI im Alltag erkennen, Ergebnisse kritisch prüfen und ethisch einordnen.",
+      komp: [
+        { t: "Die Rolle und den Einfluss von KI in verschiedenen Kontexten erkennen.", w: "Grundlage: überhaupt merken, wo KI im Alltag mitwirkt." },
+        { t: "Funktionsweisen von KI-Systemen so beschreiben, dass gängige Fehlvorstellungen aufgegriffen und ausgeräumt werden.", w: "Schützt vor Fehlvorstellungen – KI «denkt» nicht, sie rechnet Wahrscheinlichkeiten." },
+        { t: "Bewerten, ob KI-Ergebnisse akzeptiert, überarbeitet oder abgelehnt werden sollten.", w: "Kernhaltung: Ergebnisse prüfen statt blind übernehmen." },
+        { t: "Untersuchen, wie prädiktive KI-Systeme Empfehlungen abgeben, die Perspektiven prägen oder einschränken können.", w: "Erkennen, wie Empfehlungssysteme den Blick lenken (Filterblasen)." },
+        { t: "Einordnen, wie KI-Systeme Energie und natürliche Ressourcen verbrauchen.", w: "KI hat ökologische Kosten – bewusste Nutzung." },
+        { t: "Erklären, wie die Nutzung von KI Verzerrungen und gesellschaftliche Ungleichheiten verstärken kann.", w: "Bias erkennen: KI kann Ungleichheit verstärken." },
+        { t: "Analysieren, inwieweit die Nutzung eines KI-Systems mit ethischen Grundsätzen und menschlichen Werten vereinbar ist.", w: "Ethische Abwägung statt reiner Machbarkeit." }
+      ] },
+    { key: "Create", de: "KI kreativ anwenden", en: "Create with AI", color: "#2f8f5b",
+      summary: "KI als kreativen Partner nutzen und dabei das eigene Denken bewahren.",
+      komp: [
+        { t: "KI nutzen, um neue Perspektiven und Ansätze zu erkunden, die auf eigenen Ideen aufbauen.", w: "KI als Ideengeber, nicht als Ersatz des eigenen Denkens." },
+        { t: "Ideen mit verschiedenen KI-Systemen visualisieren, prototypisieren und kombinieren.", w: "Schnelles Prototypen und Kombinieren von Ideen." },
+        { t: "Generative KI gezielt steuern, um Feedback einzuholen, Ergebnisse zu verfeinern und die eigene Reflexion zu unterstützen.", w: "Gezieltes Prompten und Reflektieren statt Einmal-Frage." },
+        { t: "Analysieren, wie KI Authentizität von Inhalten und geistiges Eigentum schützen oder verletzen kann.", w: "Urheberschaft und Echtheit im Blick behalten." }
+      ] },
+    { key: "Manage", de: "KI gezielt einsetzen", en: "Manage AI", color: "#c2772e",
+      summary: "Arbeit bewusst zwischen Mensch und KI aufteilen und den Einsatz steuern.",
+      komp: [
+        { t: "Je nach Art der Aufgabe entscheiden, ob KI überhaupt eingesetzt wird.", w: "Erste Frage immer: Braucht es hier KI überhaupt?" },
+        { t: "Einen passenden KI-Ansatz wählen, indem man vergleicht, wie verschiedene Systeme arbeiten und wofür sie sich eignen.", w: "Das richtige Werkzeug für die Aufgabe wählen." },
+        { t: "Ein Problem so zerlegen, dass klar wird, wann und wie KI Aufgaben automatisiert oder unterstützt.", w: "Aufgaben sinnvoll zwischen Mensch und KI aufteilen." },
+        { t: "Den KI-Einsatz während des gesamten Arbeitsprozesses beobachten und bewerten.", w: "Verantwortung bleibt beim Menschen – laufend prüfen." }
+      ] },
+    { key: "Shape", de: "KI aktiv mitgestalten", en: "Shape AI", color: "#8a4b8f",
+      summary: "Verstehen, wie KI-Systeme entworfen und trainiert werden – und mitgestalten.",
+      komp: [
+        { t: "Untersuchen, wie ein KI-System funktionieren soll, für wen es gedacht ist und wo seine Grenzen liegen.", w: "Hinter die Kulissen schauen: Zweck, Zielgruppe, Grenzen." },
+        { t: "KI-Systeme anhand definierter Kriterien, erwarteter Ergebnisse, Testfälle und Nutzer-Feedback bewerten.", w: "Systeme kritisch testen statt Marketing glauben." },
+        { t: "KI-Systeme so entwerfen, dass bewusst ist, wie Datenquellen, Auswahl und Informationsfluss Verhalten und Ergebnisse prägen.", w: "Verstehen, dass Daten das Verhalten der KI prägen." },
+        { t: "KI-Systeme so verbessern, dass sie menschliches Wohlergehen und gesellschaftlichen Nutzen fördern.", w: "KI am Gemeinwohl ausrichten – Gestaltungsanspruch." }
+      ] }
+  ]
+};
+function oecdFind(ref) {
+  for (const d of OECD.domains) for (const k of d.komp) if (d.key + " · " + k.t === ref) return { d, k };
+  return null;
+}
+
 let MODE = "erfassen";
 let CYCLE = CYCLES[0];
 let OPEN_FIELD = null;      // Erfassen: welches Feld gezoomt
@@ -271,6 +345,7 @@ function setMode(m) {
   $("#tab-erfassen").classList.toggle("active", m === "erfassen");
   $("#tab-fazit").classList.toggle("active", m === "fazit");
   $("#tab-vern").classList.toggle("active", m === "vernehmlassung");
+  $("#tab-oecd").classList.toggle("active", m === "oecd");
   $("#bar-erfassen").style.display = m === "erfassen" ? "flex" : "none";
   render();
 }
@@ -470,7 +545,7 @@ function renderKonsensUebersicht(app) {
       const isGem = it.Ebene === "gemeinsam";
       const tagText = esc(it.Feld) + " · " + esc(it.Fragetyp || "") + " · " + (isGem ? "gemeinsam" : esc(it.Zyklus || "zyklusspezifisch"));
       row.appendChild(el("span", "konstag " + (isGem ? "gem" : "spez"), tagText));
-      row.appendChild(el("span", "konstext", esc(it.Aussage) + (it.Indikator ? `<span class="ci">→ ${esc(it.Indikator)}</span>` : "")));
+      row.appendChild(el("span", "konstext", esc(it.Aussage) + (it.Indikator ? `<span class="ci">→ ${esc(it.Indikator)}</span>` : "") + (it.OECD ? oecdBadge(it.OECD) : "")));
       const del = el("button", "del", "×");
       del.title = "Konsens-Satz löschen";
       del.onclick = async () => { if (confirm("Diesen Konsens-Satz löschen? Bereits abgegebene Rückmeldungen dazu bleiben in der Vernehmlassung erhalten.")) await delEntry(it.id); };
@@ -489,7 +564,7 @@ function konklusioBox(feld, fragetyp, showInd) {
     const isGem = ex.Ebene === "gemeinsam";
     const e = el("div", "exist");
     const lvl = isGem ? "gemeinsam" : esc(ex.Zyklus || "zyklusspezifisch");
-    e.innerHTML = `<span style="flex:1"><span class="konstag ${isGem ? "gem" : "spez"}" style="margin-right:7px">${lvl}</span>${esc(ex.Aussage)}${ex.Indikator ? `<span class="ci">→ ${esc(ex.Indikator)}</span>` : ""}</span>`;
+    e.innerHTML = `<span style="flex:1"><span class="konstag ${isGem ? "gem" : "spez"}" style="margin-right:7px">${lvl}</span>${esc(ex.Aussage)}${ex.Indikator ? `<span class="ci">→ ${esc(ex.Indikator)}</span>` : ""}${ex.OECD ? oecdBadge(ex.OECD) : ""}</span>`;
     const del = el("button", "del", "×");
     del.onclick = async () => { if (confirm("Konklusio löschen?")) await delEntry(ex.id); };
     e.appendChild(del);
@@ -497,6 +572,39 @@ function konklusioBox(feld, fragetyp, showInd) {
   });
   const ta = el("textarea"); ta.placeholder = "Konsens-Satz frisch formulieren…";
   box.appendChild(ta);
+
+  // Indikator-Feld (bei Feld «Kompetenzen» aktiv) — früh erzeugt, damit die OECD-Auswahl es füllen kann
+  let indTa = null;
+  if (showInd) {
+    indTa = el("input"); indTa.placeholder = "Indikator (optional)";
+    indTa.style.cssText = "flex:1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;";
+  }
+
+  // OECD-Kompetenz verknüpfen (nur Feld «Kompetenzen»)
+  let oecdRef = "";
+  if (feld === "Kompetenzen") {
+    const ob = el("div", "oecdpick");
+    ob.appendChild(el("div", "oecdpicklbl", "OECD-Kompetenz als Indikator wählen (optional):"));
+    const sel = el("select", "oecdsel");
+    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "— keine —"; sel.appendChild(o0);
+    OECD.domains.forEach(d => {
+      const og = document.createElement("optgroup"); og.label = d.de + " (" + d.en + ")";
+      d.komp.forEach(k => { const o = document.createElement("option"); o.value = d.key + " · " + k.t; o.textContent = k.t; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+    ob.appendChild(sel);
+    const info = el("div", "oecdinfo");
+    ob.appendChild(info);
+    sel.onchange = () => {
+      oecdRef = sel.value;
+      const found = oecdFind(oecdRef);
+      if (found) {
+        info.innerHTML = `<span class="oecdbadge" style="background:${found.d.color}">${esc(found.d.de)}</span><span class="oecdwhy">${esc(found.k.w)}</span>`;
+        if (indTa) indTa.value = found.k.t;
+      } else { info.innerHTML = ""; }
+    };
+    box.appendChild(ob);
+  }
 
   // Ebene wählen: gemeinsam (alle Zyklen) oder nur ein Zyklus
   let level = "gemeinsam";
@@ -511,12 +619,7 @@ function konklusioBox(feld, fragetyp, showInd) {
   box.appendChild(lp);
 
   const krow = el("div", "krow");
-  let indTa = null;
-  if (showInd) {
-    indTa = el("input"); indTa.placeholder = "Indikator (optional)";
-    indTa.style.cssText = "flex:1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;";
-    krow.appendChild(indTa);
-  }
+  if (indTa) krow.appendChild(indTa);
   const save = el("button", "ksave", "Als gemeinsam speichern");
   save.onclick = async () => {
     const aussage = ta.value.trim();
@@ -524,7 +627,7 @@ function konklusioBox(feld, fragetyp, showInd) {
     save.disabled = true;
     const isGem = level === "gemeinsam";
     await addEntry({ Zyklus: isGem ? "Alle (gemeinsam)" : level, Feld: feld, Fragetyp: fragetyp, Aussage: aussage,
-      Indikator: indTa ? indTa.value.trim() : "", Quelle: "", Ebene: isGem ? "gemeinsam" : "zyklusspezifisch" });
+      Indikator: indTa ? indTa.value.trim() : "", Quelle: "", Ebene: isGem ? "gemeinsam" : "zyklusspezifisch", OECD: oecdRef });
     save.disabled = false;
   };
   updateSaveLabel();
@@ -573,7 +676,12 @@ async function delEntry(id) {
 }
 function mapOut(f) {
   return { zyklus: f.Zyklus, feld: f.Feld, fragetyp: f.Fragetyp, aussage: f.Aussage,
-    indikator: f.Indikator, quelle: f.Quelle, ebene: f.Ebene };
+    indikator: f.Indikator, quelle: f.Quelle, ebene: f.Ebene, oecd: f.OECD };
+}
+function oecdBadge(ref) {
+  const found = oecdFind(ref);
+  if (!found) return "";
+  return `<span class="oecdbadge" style="background:${found.d.color}" title="${esc(found.k.t)}">OECD · ${esc(found.d.de)}</span>`;
 }
 
 /* ---------- VERNEHMLASSUNG ---------- */
@@ -620,7 +728,7 @@ function renderVernehmlassung() {
   stmts.forEach(st => {
     const f = FIELDS[st.Feld] || EXTRA[st.Feld] || { color: "lp" };
     const card = el("div", "vstmt"); card.style.setProperty("--c", `var(--${f.color})`);
-    card.appendChild(el("div", "vmeta", esc(st.Feld) + " · " + esc(st.Fragetyp || "") + (st.Ebene === "zyklusspezifisch" ? " · " + esc(st.Zyklus) : "")));
+    card.appendChild(el("div", "vmeta", esc(st.Feld) + " · " + esc(st.Fragetyp || "") + (st.Ebene === "zyklusspezifisch" ? " · " + esc(st.Zyklus) : "") + (st.OECD ? " " + oecdBadge(st.OECD) : "")));
     card.appendChild(el("div", "vsatz", esc(st.Aussage)));
     if (st.Indikator) card.appendChild(el("div", "vind", "→ " + esc(st.Indikator)));
     const existing = FEEDBACK.find(d => d.Ref === st.id && d.Schulhaus === VHOUSE && d.Zyklus === VCYCLE);
@@ -683,10 +791,40 @@ async function delFeedback(id) {
   } catch (e) { toast("Löschen fehlgeschlagen: " + e.message); }
 }
 
+function renderOECD() {
+  const app = $("#app"); app.innerHTML = "";
+  const intro = el("div", "oecdintro");
+  intro.appendChild(el("h2", null, "OECD / EU · «AILit Framework»"));
+  intro.appendChild(el("div", "oecdlead", "Kompetenzrahmen «Empowering Learners for the Age of AI» (OECD, EU-Kommission, Code.org, 2026). Er speist die <strong>PISA-2029-Erhebung MAIL</strong> (Media and AI Literacy). Vier Kompetenzbereiche, 19 Kompetenzen – als Orientierung beim Formulieren der Empfehlung und zum Verknüpfen mit dem Feld «Kompetenzen»."));
+  app.appendChild(intro);
+
+  OECD.domains.forEach(d => {
+    const box = el("div", "oecddom"); box.style.setProperty("--c", d.color);
+    const head = el("div", "oecdhead");
+    head.appendChild(el("span", "oecdde", esc(d.de)));
+    head.appendChild(el("span", "oecden", esc(d.en)));
+    head.appendChild(el("span", "oecdn", d.komp.length + " Kompetenzen"));
+    box.appendChild(head);
+    box.appendChild(el("div", "oecdsum", esc(d.summary)));
+    d.komp.forEach(k => {
+      const row = el("div", "oecdk");
+      row.appendChild(el("div", "oecdkt", esc(k.t)));
+      row.appendChild(el("div", "oecdkw", "→ " + esc(k.w)));
+      box.appendChild(row);
+    });
+    app.appendChild(box);
+  });
+
+  const foot = el("div", "oecdfoot");
+  foot.innerHTML = 'Quelle: ' + esc(OECD.quelle) + '. Kompetenz-Wortlaute im Bereich «Mit KI bewusst umgehen» offizielle dt. Fassung; übrige Bereiche eigene Übersetzung der finalen englischen Fassung. Die «→»-Hinweise sind didaktische Kurz-Erläuterungen, nicht Teil des Frameworks.';
+  app.appendChild(foot);
+}
+
 function render() {
   const f = captureFocus();
   if (MODE === "erfassen") { renderCyclebar(); renderErfassen(); }
   else if (MODE === "fazit") { renderCyclebar(); renderFazit(); }
+  else if (MODE === "oecd") { renderOECD(); }
   else { renderVernehmlassung(); }
   restoreFocus(f);
 }
