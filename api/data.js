@@ -30,7 +30,20 @@ module.exports = async (req, res) => {
     return recs;
   }
 
+  // Schreibsperre für Erfassen + Fazit (Tabelle Einträge).
+  // Standard: gesperrt. Wieder öffnen: in Vercel READ_ONLY=false setzen und neu deployen.
+  // Ausnahme: Gruppen in OPEN_CYCLES (Standard «Logopädie») dürfen weiter Rohdaten erfassen/löschen.
+  const LOCKED = String(process.env.READ_ONLY || "true").toLowerCase() !== "false";
+  const OPEN_CYCLES = String(process.env.OPEN_CYCLES || "Logopädie").split(",").map(s => s.trim()).filter(Boolean);
+  const mayWrite = (zyklus, ebene) => !LOCKED || (OPEN_CYCLES.includes(zyklus) && (ebene || "Rohdaten") === "Rohdaten");
+  const LOCK_MSG = "Erfassen und Fazit sind während der Vernehmlassung schreibgeschützt.";
+
   try {
+    if (op === "config") {
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(200).json({ locked: LOCKED, openCycles: OPEN_CYCLES });
+    }
+
     // ---- Konsens / Erfassung (Tabelle Einträge) ----
     if (op === "results") {
       const recs = await listAll(url);
@@ -44,6 +57,7 @@ module.exports = async (req, res) => {
     if (op === "submit") {
       const { zyklus, feld, fragetyp, aussage, indikator, quelle, ebene, oecd } = body || {};
       if (!aussage || !feld) return res.status(400).json({ error: "aussage und feld erforderlich" });
+      if (!mayWrite(zyklus, ebene)) return res.status(403).json({ error: LOCK_MSG });
       const fields = { Aussage: aussage, Feld: feld, Ebene: ebene || "Rohdaten" };
       if (zyklus) fields.Zyklus = zyklus;
       if (fragetyp) fields.Fragetyp = fragetyp;
@@ -59,7 +73,15 @@ module.exports = async (req, res) => {
     if (op === "delete") {
       const id = body && body.id;
       if (!id) return res.status(400).json({ error: "id erforderlich" });
-      const r = await fetch(`${url}/${id}`, { method: "DELETE", headers: H });
+      if (LOCKED) {
+        // Nur löschen, wenn der Eintrag zu einer offenen Gruppe gehört (Zyklus + Ebene serverseitig geprüft)
+        const gr = await fetch(`${url}/${encodeURIComponent(id)}`, { headers: H });
+        const gd = await gr.json();
+        if (!gr.ok) return res.status(gr.status).json({ error: (gd.error && gd.error.message) || "Airtable-Fehler" });
+        const f = gd.fields || {};
+        if (!mayWrite(f.Zyklus, f.Ebene)) return res.status(403).json({ error: LOCK_MSG });
+      }
+      const r = await fetch(`${url}/${encodeURIComponent(id)}`, { method: "DELETE", headers: H });
       const d = await r.json();
       if (!r.ok) return res.status(r.status).json({ error: (d.error && d.error.message) || "Airtable-Fehler" });
       return res.status(200).json({ deleted: id });
